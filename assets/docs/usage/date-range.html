@@ -1,0 +1,55 @@
+<p>Date range picker with configurable Date presets.</p>
+<h2>Setup</h2>
+<p>The <code>options</code> takes a <code>DateRangeOptions</code> object as a parameter to configure the date range component. This is typically setup for each component:</p>
+<pre><code class="language-typescript">@Component({
+...
+})
+export class MyComponent implements OnInit{
+     options: DateRangeOptions;
+     ngOnInit() {
+        this.options = {
+            presets: [],
+            format: 'mediumDate',
+            range: { fromDate: today, toDate: today },
+            applyLabel: 'Apply',
+            ...
+        };
+    }
+}
+</code></pre>
+<pre><code class="language-html">&lt;button hc-button hcDateRange [options]=&quot;options&quot;&gt;Click Me&lt;/button&gt;
+</code></pre>
+<p>You can customize the text of the input titles by adding the following parameters to the <code>options</code> object:</p>
+<pre><code class="language-typescript">startDatePrefix: 'Effective Date',
+endDatePrefix: 'Expiration Date',
+</code></pre>
+<p>The following are default values if the options are not setup</p>
+<pre><code class="language-typescript">{
+    excludeWeekends: false,
+    locale: 'en-US',
+    fromMinMax: { fromDate: undefined, toDate: undefined },
+    toMinMax: { fromDate: undefined, toDate: undefined },
+    presets: [],
+    startDatePrefix: 'Start Date',
+    endDatePrefix: 'End Date',
+    format: '',
+    range: { fromDate: undefined, toDate: undefined }
+}
+</code></pre>
+<h3>Restricting the selectable range</h3>
+<p>You can restrict length of the period range the user can select by providing a <code>periodDurationOptions</code> object as a part of <code>options</code>.</p>
+<p><code>minDate</code> and <code>maxDate</code> are optional and will only restrict the start calendar as the end calendar valid range is derived from lengthInDays from and including selected start date, in this example 365 days.</p>
+<p>NOTE! Using periodDurationOptions infers a narrowing of feature scope. Some behavior may be different or not present as a result of this choice.</p>
+<pre><code class="language-typescript">        this.options = {
+            presets: [],
+            format: 'mediumDate',
+            range: { fromDate: today, toDate: today },
+            applyLabel: 'Apply',
+            ...
+            periodDurationOptions: {
+                lengthInDays: 365,
+                minDate: fromMin, // Optional
+                maxDate: toMax    // Optional
+            }
+        };
+</code></pre>

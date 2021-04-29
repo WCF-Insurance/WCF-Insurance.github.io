@@ -1,0 +1,26 @@
+<h3>Busy Indicator Usage</h3>
+<p>The code to actually implement this in a project is considerably different than what is shown in the examples.
+The examples had to be unique in order to demonstrate them here.</p>
+<p><a href="https://www.npmjs.com/package/ng-http-loader">ng-http-loader</a> seems to be a very versatile module for this. It will automatically start when you fire off an HTTP request and stop when the request completes. In large part, it is completely automatic once it is configured. Configuration is at the app level making it a one time setup. It also comes with a service so that you can start and stop it manually if you ever need. You can tell ng-http-loader to use this component as a custom component for the look and feel.</p>
+<p>Install the ng-http-loader module:</p>
+<pre><code class="language-bash">npm i ng-http-loader
+</code></pre>
+<p>app.module.ts:</p>
+<pre><code class="language-javascript">imports: [
+    ...
+    NgHttpLoaderModule.forRoot(),
+    ...
+],
+entryComponents: [
+    ...
+    BusyIndicatorComponent,
+    ...
+]
+</code></pre>
+<p>app.component.ts:</p>
+<pre><code class="language-javascript">// add public variable
+busyComponent = BusyIndicatorComponent;
+</code></pre>
+<p>app.component.html:</p>
+<pre><code class="language-html">&lt;ng-http-loader [entryComponent]=&quot;busyComponent&quot;&gt;&lt;/ng-http-loader&gt;
+</code></pre>

@@ -1,0 +1,20 @@
+<p>The address component is a form that is to be nested within another form. It is connected to the parent form with the <code>parentForm</code> property. The second address field is hidden by default but may be used with the <code>showAddressTwo</code> boolean property.</p>
+<pre><code class="language-html">&lt;form [formGroup]=&quot;mainForm&quot;&gt;
+    &lt;input hcInput formControlName=&quot;someInput&quot; required&gt;
+    &lt;input hcInput formControlName=&quot;anotherInput&quot; required&gt;
+    &lt;hc-address [parentForm]=&quot;mainForm&quot; [showAddressTwo]=&quot;true&quot;&gt;&lt;/hc-address&gt;
+&lt;/form&gt;
+</code></pre>
+<p>The parent form group must provide the model for the fields found in the address component form. The property keys must be named <code>address, addressTwo, zip, city, state</code></p>
+<pre><code class="language-html">  ngOnInit() {
+      this.mainForm = this.fb.group({
+          someInput: ['', Validators.required],
+          anotherInput: [''],
+          address: ['', Validators.required],
+          addressTwo: [''],
+          zip: ['', Validators.required],
+          city: ['', Validators.required],
+          state: ['']
+      });
+  }
+</code></pre>

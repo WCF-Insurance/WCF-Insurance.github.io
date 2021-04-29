@@ -1,0 +1,233 @@
+<p>#Guide to using the Multi-Select Picker</p>
+<h2>Selected vs. Unselected Items</h2>
+<h3>Providing a list of options</h3>
+<p>Options are required by every variation of the picker component. These options are what the user will see as <strong>unselected</strong> items. Note: selected items are described in the next section and must not be added this list which is only for unselected options.</p>
+<p>To provide options to the picker component bind an array to the nonSelectedValues input param like so: <code>&lt;hc-multi-select-picker&gt;[nonSelectedValues]=&quot;unCheckedOptions&quot;&lt;/hc-multi-select-picker&gt;</code></p>
+<h3>Providing a list of selected items</h3>
+<p>For any values that you want to have <strong>pre-selected</strong> (checked) you must pass to a separate binding: <code>&lt;hc-multi-select-picker&gt;[selectedValues]=&quot;checkedOptions&quot;&lt;/hc-multi-select-picker&gt;</code></p>
+<p>If no options need to be pre-selected then this part can be skipped.</p>
+<h2>Basic Lists</h2>
+<p>The picker component is meant to be as simple as possible for basic use cases and adds complexity only as needed.</p>
+<p>If you have a simple list of <strong>strings</strong> or <strong>numbers</strong> then you can pass the list(s) as described in the Provide List Data section. A couple things come free just by providing a primitive (string or number) list:</p>
+<ul>
+<li>Search or Filtering items in the list</li>
+<li>Summary of selected items</li>
+</ul>
+<p>However, if you have complex data described by objects then you will need to tell the MultiSelectPickerComponent how to understand those objects so that it can provide search/filter and summary features to the user. See next section for details.</p>
+<h2>Object Lists</h2>
+<p>Where the <code>&lt;hc-multi-select-picker&gt;</code> really shines is in it's ability to present complex data to the user for them to select one or more choices.</p>
+<h3>Presenting complex data to the user <span id="complex-templates"></span></h3>
+<h4>Custom Component</h4>
+<p>The recommended approach is to provide a custom component to the hc-multi-select-picker because it cleanly encapsulates the desired behavior and data.</p>
+<p>usage:</p>
+<pre><code>&lt;hc-multi-select-picker ... [nonSelectedValues]='unselectedUsers' [selectedValues]='selectedUsers'&gt;
+    &lt;user-badge *hcPickerItem=&quot;let item&quot; [user]=&quot;item&quot;&gt;&lt;/some-custom-component&gt;
+&lt;/hc-multi-select-picker&gt;
+</code></pre>
+<p>Notice that a list of <code>nonSelectedValues</code> and <code>selectedValues</code> were provided and then a custom user component is projected in the content area of the <code>&lt;hc-multi-select-picker&gt;</code>.</p>
+<p>Also notice that <code>*hcPickerItem=&quot;let item&quot;</code> is a directive that describes to the picker component how to wire up the data for each item displayed to the user. There are two parts:</p>
+<ol>
+<li><code>hcPickerItem</code> marks this component as a dynamic template to be used for stamping out each provided list item. It is helpful to think of this as describing your component literally as a stamp that will be used many times.</li>
+<li><code>&quot;let item&quot;</code> declares to Angular a variable, that we decide in this example to call <code>item</code>. This <code>item</code> variable is then available to wire up to the component as if the data was already available.</li>
+</ol>
+<p>The above strategy is essentially a custom version of an angular for loop. <code>*ngFor=&quot;let item of items&quot;</code> Note that this is very similiar syntax except we do not provide <code>of items</code> because the list is passed to and controlled by <code>hc-multi-select-picker</code>.</p>
+<h4>Custom Template</h4>
+<p>An alternative to use a custom component is to provide a custom template. This might be useful if the object being displayed to the user is very simple. Even in this case a custom component is still recommended for code cleanliness but this option is here if needed.</p>
+<p>With the custom template some parts remain the same such as the bound properties and events on the parent <code>&lt;hc-multi-select-picker&gt;</code> what differs is that you will be projecting a custom template in place of the custom component.</p>
+<p>Usage:</p>
+<pre><code>&lt;hc-multi-select-picker ... [selectedValues]=&quot;selectedLocationValues&quot; [nonSelectedValues]=&quot;locationValues&quot;&gt;
+    &lt;div *hcPickerItem=&quot;let item&quot;&gt;
+        &lt;div class=&quot;building&quot;&gt;
+            &lt;b&gt;{{ item.building.title }} - {{ item.building.subtitle }}&lt;/b&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;address&quot;&gt;{{ item.address }}&lt;/div&gt;
+    &lt;/div&gt;
+&lt;/hc-multi-select-picker&gt;
+</code></pre>
+<p>Taking what you have already learned from the custom component section this approach still uses <code>*hcPickerItem=&quot;let item&quot;</code> but notice it is placed on the projected content's root <code>div</code>. This performs the same tasks as for custom components and again is essentially a custom for loop for the <code>&lt;hc-multi-select-picker&gt;</code> and says that this element and it's children should be stamped out for every provided item.</p>
+<p>In this example there are areas of interpolation where we output values from an object item that doesn't exist yet.</p>
+<p>Also, you might have noticed that there is real only difference between a template and a component being projected into the <code>&lt;hc-multi-select-picker&gt;</code>.</p>
+<p>For the template approach, in place of passing the magic <code>item</code> reference to an input property <code>[user]</code> on a component i.e.
+<code>&lt;user-badge *hcPickerItem... [user]=&quot;item&quot;&gt;</code> we  instead call out each part of the content where an item property value should be output. i.e. <code>&lt;div class=&quot;address&quot;&gt;{{ item.address }}&lt;/div&gt;</code></p>
+<h3>Describe how to search or filter items</h3>
+<p>If you have a basic <strong>string</strong> or <strong>number</strong> list you can skip this section unless you want to provide some custom search logic beyond the default logic provided for free by the picker that utilizes a lower cased <code>includes()</code> search . If you have a list of objects you must provide a search resolver function to the <code>&lt;hc-multi-select-picker&gt;</code> so that it knows how to search the custom data.</p>
+<p>usage:</p>
+<pre><code class="language-$html">&lt;hc-multi-select-picker ... [pickerItemFilterResolver]=&quot;locationInfoFilter&quot;&gt;&lt;/hc-multi-select-picker&gt;
+</code></pre>
+<pre><code class="language-$typescript">locationInfoFilter(filter: string, item: LocationInfo): boolean {
+    return (item.building.title + item.building.subtitle).toLowerCase().includes(filter.toLowerCase());
+}
+</code></pre>
+<p>The filter function can be whatever logic you want as long as it returns a boolean. This function you provide will need two parameters (<code>filter: string, item: LocationInfo</code>):</p>
+<ol>
+<li>this is a string and is the search term the user enters. This will be invoked on each change / keystroke in the search input field.</li>
+<li>this is an item that needs to be searched over to decide if it matches the search criteria. This would be a primitive string or number in the case of a basic list or an object in the case of a rich data list.</li>
+</ol>
+<h3>Summary Item Text Resolver for complex object lists</h3>
+<p>Similar to the last section, if you have a basic <strong>string</strong> or <strong>number</strong> list you can skip this section unless you want to provide custom logic to determine what text gets displayed in the summary section below the <code>&lt;hc-multi-select-picker&gt;</code>.</p>
+<p>usage:</p>
+<pre><code class="language-$html">&lt;hc-multi-select-picker ... [summaryTextItemResolver]=&quot;locationInfoSubtitleResolver&quot;&gt;&lt;/hc-multi-select-picker&gt;
+</code></pre>
+<pre><code class="language-$typescript">locationInfoSubtitleResolver(value: LocationInfo): boolean {
+    return value.building.subtitle;
+}
+</code></pre>
+<p>This resolver as written will select the subtitle off of every selected item and will display them as comma separated list of subtitles.</p>
+<h2>Forms</h2>
+<p><code>&lt;hc-multi-select-picker&gt;</code> is compatible with Angular forms and also with <code>&lt;hc-form-field&gt;</code> and thus should have all the same behavior you would expect from any of the other Cashmere form components.</p>
+<p>Angular documentation for forms along with the forms example under Examples tab should have everything needed to get up and running with forms. However, here is some additional information.</p>
+<h3>Reactive Forms</h3>
+<p>To make <code>&lt;hc-multi-select-picker&gt;</code> into a form control simply add one of the following directives and provide the proper binding value:</p>
+<ul>
+<li><code>formControl</code> requires a binding to a control instance declared in the component class.</li>
+<li><code>formControlName</code> requires the name of a control that is available in the form group to which this form item belongs.</li>
+</ul>
+<h4>Form Control usage:</h4>
+<pre><code class="language-typescript">elementValues: string[] = [
+    'Helium',
+    'Oxygen',
+    'Boron',
+    'Lead',
+    'Iron'
+];
+
+selectedElementValues: string[] = ['Hydrogen'];
+
+elements = new FormControl(this.selectedElementValues);
+
+ngOnInit() {
+    this.elements.setValue(this.selectedElementValues); // Dynamically set form control value, if or when needed
+
+    this.elements.valueChanges.subscribe((value) =&gt; {
+        console.log('Value Change:', value);
+    });
+}
+</code></pre>
+<pre><code class="language-html">&lt;hc-form-field&gt;
+    &lt;hc-multi-select-picker [formControl]=&quot;elements&quot; [nonSelectedValues]=&quot;elementValues&quot;&gt;&lt;/hc-multi-select-picker&gt;
+&lt;/hc-form-field&gt;
+</code></pre>
+<p>Notice that we still need to provide a list of non selected option values whereas the selected options are passed into the element form control on control initialization in the component class.</p>
+<h4>Form Control Name usage:</h4>
+<pre><code class="language-typescript">elementValues: string[] = [
+    'Helium',
+    'Oxygen',
+    'Boron',
+    'Lead',
+    'Iron'
+];
+
+selectedElementValues: string[] = ['Hydrogen'];
+
+formGroup: FormGroup;
+
+constructor(private fb: FormBuilder) {}
+
+ngOnInit() {
+    this.formGroup = this.fb.group({
+        elements: [this.selectedElementValues]
+    });
+
+    this.formGroup.valueChanges.subscribe((value) =&gt; {
+        console.log('Value Change:', value);
+    });
+}
+</code></pre>
+<pre><code class="language-html">&lt;div [formGroup]=&quot;formGroup&quot;&gt;
+    &lt;hc-form-field&gt;
+        &lt;hc-multi-select-picker formControlName=&quot;elements&quot; [nonSelectedValues]=&quot;elementValues&quot;&gt;&lt;/hc-multi-select-picker&gt;
+    &lt;/hc-form-field&gt;
+&lt;/div&gt;
+</code></pre>
+<p>Notice that we still need to provide a list of non selected option values whereas the selected options are passed into the element form control on control initialization in the component class.</p>
+<h3>Labels</h3>
+<p>Adding a form label is as easy as using <code>&lt;hc-form-field&gt;</code> component and adding <code>&lt;hc-label&gt;</code> like so:</p>
+<pre><code class="language-html">&lt;hc-form-field&gt;
+    &lt;hc-label&gt;Periodic Element:&lt;/hc-label&gt;
+    &lt;hc-multi-select-picker formControl=&quot;elements&quot; ...&lt;/hc-multi-select-picker&gt;
+&lt;/hc-form-field&gt;
+</code></pre>
+<h3>Errors</h3>
+<p>Errors can be displayed with ease as well.</p>
+<pre><code class="language-html">&lt;hc-form-field&gt;
+    &lt;hc-multi-select-picker formControl=&quot;elements&quot; ...&lt;/hc-multi-select-picker&gt;
+&lt;/hc-form-field&gt;
+&lt;hc-error&gt;There was an error&lt;/hc-error&gt;
+</code></pre>
+<p>If you want you can also apply conditional statements to various error message blocks like so:</p>
+<pre><code class="language-html">&lt;hc-error *ngIf=&quot;elements?.errors?.required&quot;&gt;Required Field&lt;/hc-error&gt;
+&lt;hc-error *ngIf=&quot;elements?.errors?.minLength&quot;&gt;Minimum Length is 5&lt;/hc-error&gt;
+</code></pre>
+<h3>Hints</h3>
+<p>Hints are just as easy as labels:</p>
+<pre><code class="language-html">&lt;hc-form-field&gt;
+    &lt;hc-multi-select-picker formControl=&quot;elements&quot; ...&lt;/hc-multi-select-picker&gt;
+    &lt;hc-hint&gt;Try one of the heavier elements!&lt;/hc-hint&gt;
+&lt;/hc-form-field&gt;
+</code></pre>
+<h3>Required</h3>
+<p>To make a <code>&lt;multi-select-picker&gt;</code> required simply add a required attribute.</p>
+<pre><code class="language-html">&lt;hc-form-field&gt;
+    &lt;hc-multi-select-picker formControl=&quot;elements&quot; required&lt;/hc-multi-select-picker&gt;
+    &lt;hc-error&gt;An element is required!&lt;/hc-error&gt;
+&lt;/hc-form-field&gt;
+</code></pre>
+<p>One caveat with making the picker required is that although Angular forms let's you initialize a form control with values and specify validators like so: <code>elements: [this.selectedElementValues, Validators.required]</code> the Cashmere <code>hc-form-field</code> is not currently designed to expose validators from the form component to <code>hc-form-field</code>. This means that it won't know to add a required marker * to the label.</p>
+<p>If you want to make a control required make sure to at least add a required attribute on the html element itself as shown in the above example. You may also additionally add the required validator to the form control initialization but that would result in two locations specifying required. Other validators should be fine to add as normal.</p>
+<h3>Disabled</h3>
+<p>To mark a field as disabled either add a disabled attribute to the control in the html template or you may specify on form initialization that it is disabled.</p>
+<p>usage on initialization:</p>
+<pre><code class="language-typescript">this.formGroup = this.fb.group({
+    elements: {value: this.selectedElementValues, disabled: true}
+}); 
+</code></pre>
+<p>or usage in template</p>
+<pre><code class="language-html">&lt;hc-form-field&gt;
+    &lt;hc-multi-select-picker formControl=&quot;elements&quot; disabled&lt;/hc-multi-select-picker&gt;
+&lt;/hc-form-field&gt;
+</code></pre>
+<p>or dynamically at a later time</p>
+<pre><code class="language-typescript">control.disable();
+</code></pre>
+<h2>Misc</h2>
+<h3>Checkbox behavior</h3>
+<p>Note that by design selected items will bubble up to the top of the list of options, when unselected they will bubble back to their natural order.</p>
+<h3>Disabled</h3>
+<p>You can still disable a <code>&lt;hc-multi-select-picker&gt;</code> without it being a form. Just add the disabled attribute.</p>
+<h3>Focus</h3>
+<p>Users can use tab key to focus into a picker. Once opened the user will not be able to dismiss the modal via tabbing and must click <strong>cancel</strong>, <strong>submit</strong>, or click on the overlay outside the modal which acts as a cancel action. Once the modal is dismissed the user may continue tabbing to there elements in order.</p>
+<h3>Controlling number of summary items</h3>
+<p>The summary text below the picker input might get too long to fit reasonably in a given UI layout. If this happens you can add an attribute to the picker like so:</p>
+<pre><code class="language-html">&lt;hc-multi-select-picker ... maxSummaryItems=&quot;8&quot;&lt;/hc-multi-select-picker&gt;
+</code></pre>
+<p>If this threshold is surpassed (i.e. list is greater than threshold ) then in place of showing a list like this:</p>
+<pre><code class="language-text">Selected: Hydrogen, Helium, Iron, Boron
+Francium, Fibranium, Unobtainium, Atamantium
+</code></pre>
+<p>you would instead see the summary like this:</p>
+<pre><code class="language-text">Selected: 9 items
+</code></pre>
+<h3>Configuring the placeholder</h3>
+<p>The placeholder is the message that is displayed in the input field whenever there is not input text present from the user.</p>
+<p>usage:</p>
+<pre><code class="language-html">&lt;hc-multi-select-picker ... placeholder=&quot;Choose Element&quot;&lt;/hc-multi-select-picker&gt;
+</code></pre>
+<h3>Listening for changes</h3>
+<p>Whether or not the <code>&lt;hc-multi-select-picker&gt;</code> is used in a form you may also apply a change event listener to the component.</p>
+<p>usage:</p>
+<pre><code class="language-html">&lt;hc-multi-select-picker ... (change)=&quot;elementsSelected($event)&quot;&lt;/hc-multi-select-picker&gt;
+</code></pre>
+<pre><code class="language-typescript">change(event: MultiSelectPickerChangeEvent&lt;string&gt;): void {
+    console.log(&quot;basic example changed:&quot;, event);
+}
+</code></pre>
+<p>The <code>MultiSelectPickerChangeEvent&lt;string&gt;</code> has the following shape:</p>
+<pre><code class="language-typescript">export class MultiSelectPickerChangeEvent&lt;T&gt; {
+    constructor(
+        public source: MultiSelectPickerComponent,
+        public selectedValues: T[]
+    ) {}
+}
+</code></pre>
+<p>This object gives you access to all the selected values as well as a reference to the picker component allowing access to any public members.</p>
+<p>Notice that this event object is generic so you can type it as your expected type when setting up a change listener. In the example above the type of <code>T</code> is string.</p>
